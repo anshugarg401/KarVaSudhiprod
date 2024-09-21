@@ -36,6 +36,33 @@ import {
 import React, { useEffect, useMemo, useState } from 'react'
 import Modal from './_components/Modal'
 import { connect } from "http2";
+interface AccountSelectorProps {
+  accounts: AccountId[]
+  selectedAccount: AccountId | null
+  onSelect: (accountId: AccountId) => void
+}
+
+const AccountSelector = ({ accounts, selectedAccount, onSelect }: AccountSelectorProps) => {
+  return (
+    <label>
+      Signer Account:
+      <select
+      className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200  sm:text-sm"
+        value={selectedAccount?.toString()}
+        onChange={(e) => onSelect(AccountId.fromString(e.target.value))}
+      >
+        {accounts?.map((accountId, index) => {
+          console.log('Account ID', accountId);
+          return (
+            <option key={index} value={accountId.toString()}>
+              {accountId.toString()}
+            </option>
+          );
+        })}
+      </select>
+    </label>
+  )
+}
 export default function Home() {
   // const hello = await api.post.hello({ text: "from tRPC" });
   // const session = await getServerAuthSession();
@@ -450,28 +477,47 @@ export default function Home() {
         </section>
 
           </div>
-          {/* <div className="flex flex-col items-center gap-2"> */}
-            {/* <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
-            </div>
+          <section>
+          <fieldset>
+            <legend>1. hedera_getNodeAddresses</legend>
+            <button disabled={!dAppConnector} onClick={handleGetNodeAddresses}>
+              hedera_getNodeAddresses
+            </button>
+          </fieldset>
+        </section>
+        <section>
+          <div>
+            <fieldset>
+              <legend>3. hedera_signMessage</legend>
+              <AccountSelector
+                accounts={signers.map((signer) => {signer.getAccountId()})}
+                selectedAccount={selectedSigner?.getAccountId() || null}
+                onSelect={(accountId) =>
+                {  console.log('Selected Account: ', accountId)
+                  setSelectedSigner(dAppConnector?.getSigner(accountId)!)}
+                }
+              />
+              <label>
+                Message:
+                <input value={message} onChange={(e) => setMessage(e.target.value)} required />
+              </label>
+              <label>
+                Hedera Testnet Public Key:
+                <input
+                  value={publicKey}
+                  onChange={(e) => setPublicKey(e.target.value)}
+                  required
+                />
+              </label>
+              <p>The public key for the account is used to verify the signed message</p>
+            </fieldset>
+            <button disabled={disableButtons} onClick={handleSignMessage}>
+              Submit to wallet
+            </button>
           </div>
-
-          {session?.user && <LatestPost />} */}
+        </section>
           <button onClick = {()=>handleConnect()}>handle connect</button>
           <button onClick = {()=>handleDisconnectSessions()}>handle Disconnect session</button>
-          <button onClick={()=>handleGetNodeAddresses()}>get node address</button>
           <button onClick = {()=>handleClearData()}>handle clear data</button>
         </div>
       </main>
