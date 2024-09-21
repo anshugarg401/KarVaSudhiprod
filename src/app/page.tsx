@@ -413,28 +413,42 @@ export default function Home() {
             </button>
           </div>
         </section>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
+        <section>
+          <div>
+            {isLoading && <p>Loading...</p>}
+            <fieldset>
+              {sessions.length === 0 ? (
+                <legend>Step 2: Connect a wallet</legend>
+              ) : (
+                <>
+                  <legend>Connected Wallets</legend>
+                  <ul>
+                    {sessions.map((session, index) => (
+                      <li key={index}>
+                        <p>Session ID: {session.topic}</p>
+                        <p>Wallet Name: {session.peer.metadata.name}</p>
+                        <p>Account IDs: {session.namespaces?.hedera?.accounts?.join(' | ')}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <button disabled={!dAppConnector || isLoading} onClick={() => handleConnect()}>
+                Open WalletConnect Modal
+              </button>
+              {extensions.map((extension, index) => (
+                <button
+                  disabled={isLoading}
+                  key={index}
+                  onClick={() => handleConnect(extension.id)}
+                >
+                  Open {extension.name}
+                </button>
+              ))}
+            </fieldset>
+          </div>
+        </section>
+
           </div>
           {/* <div className="flex flex-col items-center gap-2"> */}
             {/* <p className="text-2xl text-white">
