@@ -47,15 +47,15 @@ const AccountSelector = ({ accounts, selectedAccount, onSelect }: AccountSelecto
     <label>
       Signer Account:
       <select
-      className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200  sm:text-sm"
+      className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200  sm:text-sm text-black"
         value={selectedAccount?.toString()}
         onChange={(e) => onSelect(AccountId.fromString(e.target.value))}
       >
         {accounts?.map((accountId, index) => {
           console.log('Account ID', accountId);
           return (
-            <option key={index} value={accountId.toString()}>
-              {accountId.toString()}
+            <option key={index} value={accountId?.toString()}>
+              {accountId?.toString()}
             </option>
           );
         })}
@@ -337,7 +337,7 @@ export default function Home() {
   }
 
   const handleDisconnectSessions = async () => {
-    modalWrapper(async () => {
+    await modalWrapper(async () => {
       await dAppConnector!.disconnectAll()
       setSessions([])
       setSigners([])
@@ -487,7 +487,145 @@ export default function Home() {
         </section>
         <section>
           <div>
+          <h2>Transaction methods:</h2>
+        <section>
+          <label>
+            Select a transaction method:
+            <select
+              value={selectedTransactionMethod}
+              onChange={(e) => setSelectedTransactionMethod(e.target.value)}
+            >
+              <option value={'hedera_executeTransaction'}>2. hedera_executeTransaction</option>
+              <option value={'hedera_signAndExecuteTransaction'}>
+                5. hedera_signAndExecuteTransaction
+              </option>
+              <option value={'hedera_signTransaction'}>6. hedera_signTransaction</option>
+            </select>
+          </label>
+          <div>
             <fieldset>
+              <label>
+                Transaction type:
+                <select>
+                  <option value="hbar-transfer">Hbar Transfer</option>
+                </select>
+              </label>
+              {selectedTransactionMethod === 'hedera_executeTransaction' ? (
+                <>
+                  <label>
+                    Signer AccountId:
+                    <input
+                      value={signerAccount}
+                      onChange={(e) => setSignerAccount(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Signer Private Key:
+                    <input
+                      value={signerPrivateKey}
+                      onChange={(e) => setSignerPrivateKey(e.target.value)}
+                      required
+                    />
+                  </label>
+                </>
+              ) : (
+                <AccountSelector
+                  accounts={signers.map((signer) => signer.getAccountId())}
+                  selectedAccount={selectedSigner?.getAccountId() || null}
+                  onSelect={(accountId) =>
+                    setSelectedSigner(dAppConnector?.getSigner(accountId)!)
+                  }
+                />
+              )}
+              <label>
+                Send to address:
+                <input
+                  value={receiver}
+                  onChange={(e) => setReceiver(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Amount in Hbar:
+                <input value={amount} onChange={(e) => setAmount(e.target.value)} required />
+              </label>
+            </fieldset>
+            <button
+              disabled={disableButtons}
+              onClick={() => {
+                modalWrapper(async () => {
+                  if (!dAppConnector) throw new Error('DAppConnector is required')
+                  if (!selectedSigner) throw new Error('Selected signer is required')
+                  switch (selectedTransactionMethod) {
+                    case 'hedera_executeTransaction':
+                      return handleExecuteTransaction()
+                    case 'hedera_signAndExecuteTransaction':
+                      return handleHederaSignAndExecuteTransaction()
+                    case 'hedera_signTransaction':
+                      return handleHederaSignTransaction()
+                  }
+                })
+              }}
+            >
+              Submit to wallet
+            </button>
+          </div>
+        </section>
+        <section>
+          <div>
+            <fieldset>
+              <legend>3. hedera_signMessage</legend>
+              <AccountSelector
+                accounts={signers.map((signer) => signer.getAccountId())}
+                selectedAccount={selectedSigner?.getAccountId() || null}
+                onSelect={(accountId) =>
+                  setSelectedSigner(dAppConnector?.getSigner(accountId)!)
+                }
+              />
+              <label>
+                Message:
+                <input value={message} onChange={(e) => setMessage(e.target.value)} required />
+              </label>
+              <label>
+                Hedera Testnet Public Key:
+                <input
+                  value={publicKey}
+                  onChange={(e) => setPublicKey(e.target.value)}
+                  required
+                />
+              </label>
+              <p>The public key for the account is used to verify the signed message</p>
+            </fieldset>
+            <button disabled={disableButtons} onClick={handleSignMessage}>
+              Submit to wallet
+            </button>
+          </div>
+        </section>
+        <section>
+          <div>
+            <fieldset>
+              <legend>4. hedera_signAndExecuteQuery</legend>
+              <label>
+                Query type:
+                <select>
+                  <option value="account-info">Account Info</option>
+                </select>
+              </label>
+              <AccountSelector
+                accounts={signers.map((signer) => signer.getAccountId())}
+                selectedAccount={selectedSigner?.getAccountId() || null}
+                onSelect={(accountId) =>
+                  setSelectedSigner(dAppConnector?.getSigner(accountId)!)
+                }
+              />
+            </fieldset>
+            <button disabled={disableButtons} onClick={handleExecuteQuery}>
+              hedera_signAndExecuteQuery
+            </button>
+          </div>
+        </section>
+            {/* <fieldset>
               <legend>3. hedera_signMessage</legend>
               <AccountSelector
                 accounts={signers.map((signer) => {signer.getAccountId()})}
@@ -513,12 +651,36 @@ export default function Home() {
             </fieldset>
             <button disabled={disableButtons} onClick={handleSignMessage}>
               Submit to wallet
-            </button>
+            </button> */}
           </div>
         </section>
           <button onClick = {()=>handleConnect()}>handle connect</button>
           <button onClick = {()=>handleDisconnectSessions()}>handle Disconnect session</button>
           <button onClick = {()=>handleClearData()}>handle clear data</button>
+          <h2>Pairing and session management:</h2>
+        <section>
+          <div>
+            <button disabled={!dAppConnector} onClick={handleDisconnectSessions}>
+              Disconnect all sessions and pairings
+            </button>
+            <span> </span>
+            <button onClick={handleClearData}>Clear saved data</button>
+          </div>
+        </section>
+        <Modal title="Send Request" isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
+          {isModalLoading ? (
+            <div className="loading">
+              <p>Approve request on wallet</p>
+              <span className="loader"></span>
+            </div>
+          ) : (
+            <div>
+              <h3>{modalData?.status}</h3>
+              <p>{modalData?.message}</p>
+              <pre>{JSON.stringify(modalData?.result, null, 2)}</pre>
+            </div>
+          )}
+        </Modal>
         </div>
       </main>
   );
