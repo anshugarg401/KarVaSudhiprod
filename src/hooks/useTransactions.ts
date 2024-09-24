@@ -1,23 +1,4 @@
 import { create } from "zustand";
-
-// Define missing functions and variables
-const saveData = () => {
-  localStorage.setItem("hedera-wc-demos-saved-state", JSON.stringify({}));
-};
-
-const setModalOpen = (isOpen: boolean) => {
-  /* Implementation here */
-};
-const setIsModalLoading = (isLoading: boolean) => {
-  /* Implementation here */
-};
-const setModalData = (data: {
-  status: string;
-  message: string;
-  result?: unknown;
-}) => {
-  /* Implementation here */
-};
 import { Buffer } from "buffer";
 import {
   AccountId,
@@ -26,12 +7,12 @@ import {
   Client,
   Hbar,
   LedgerId,
-  PrivateKey,
+  type PrivateKey,
   PublicKey,
   TransactionId,
   TransferTransaction,
 } from "@hashgraph/sdk";
-import { type SessionTypes, SignClientTypes } from "@walletconnect/types";
+import { type SessionTypes, type SignClientTypes } from "@walletconnect/types";
 import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
@@ -41,11 +22,11 @@ import {
   verifyMessageSignature,
   type ExtensionData,
   type DAppSigner,
-  SignMessageParams,
-  SignAndExecuteTransactionParams,
+  type SignMessageParams,
+  type SignAndExecuteTransactionParams,
   transactionToBase64String,
   SignAndExecuteQueryParams,
-  ExecuteTransactionParams,
+  type ExecuteTransactionParams,
   type GetNodeAddressesResult,
   type ExecuteTransactionResult,
   type SignAndExecuteTransactionResult,
@@ -58,80 +39,148 @@ interface HederaTransactions {
   signers: DAppSigner[];
   selectedSigner: DAppSigner | null;
   extensions: ExtensionData[];
-  handleGetNodeAddresses: (  ) => Promise<GetNodeAddressesResult>;
-  handleExecuteTransaction: (signerPrivateKey: string | PrivateKey, signerAccount: AccountId,receiver:AccountId ,amount: number) => Promise<ExecuteTransactionResult>;
-  handleSignMessage: () => Promise<void>;
-  handleExecuteQuery: () => Promise<void>;
-  handleHederaSignAndExecuteTransaction: () => Promise<SignAndExecuteTransactionResult>;
-  handleHederaSignTransaction: (receiver:AccountId ,amount: number) => Promise<{
+  handleGetNodeAddresses: () => Promise<GetNodeAddressesResult>;
+  handleExecuteTransaction: (
+    signerPrivateKey: string | PrivateKey,
+    signerAccount: AccountId,
+    receiver: AccountId,
+    amount: number,
+  ) => Promise<ExecuteTransactionResult>;
+  handleSignMessage: (
+    message: string,
+    publicKey: string,
+  ) => Promise<{ signatureMap: string; verified: boolean }>;
+  handleExecuteQuery: () => Promise<AccountInfo>;
+  handleHederaSignAndExecuteTransaction: (
+    receiver: AccountId,
+    amount: number,
+  ) => Promise<SignAndExecuteTransactionResult>;
+  handleHederaSignTransaction: (
+    receiver: AccountId,
+    amount: number,
+  ) => Promise<{
     transaction: TransferTransaction;
   }>;
-  setNewSession: ( session: SessionTypes.Struct) => void;
-  handleConnect: (extensionId?: string) => Promise<void>
+  setNewSession: (session: SessionTypes.Struct) => void;
+  handleConnect: (extensionId?: string) => Promise<void>;
   handleInitConnector: () => Promise<void>;
   handleDisconnectSessions: () => Promise<void>;
-  
 }
 
 const useHederaTransactions = create<HederaTransactions>((set) => ({
   dAppConnector: null,
   sessions: [],
   signers: [],
-  selectedSigner: null,
   extensions: [],
   handleGetNodeAddresses: async () => {
     const state = useHederaTransactions.getState();
     console.log("state: ", state);
-    const nodeAddresses: GetNodeAddressesResult = await state.dAppConnector!.getNodeAddresses();
+    const nodeAddresses: GetNodeAddressesResult =
+      await state.dAppConnector!.getNodeAddresses();
     console.log("NodeAddresses: ", nodeAddresses);
     return nodeAddresses;
   },
-  handleExecuteTransaction: async (signerPrivateKey: string | PrivateKey, signerAccount: AccountId, receiver: AccountId, amount: number) => {
+  handleExecuteTransaction: async (
+    signerPrivateKey: string | PrivateKey,
+    signerAccount: AccountId,
+    receiver: AccountId,
+    amount: number,
+  ) => {
+    try {
+      const state = useHederaTransactions.getState();
+      if (!signerPrivateKey) throw new Error("Signer private key is required");
+      const client = Client.forTestnet();
+      client.setOperator(signerAccount, signerPrivateKey);
+
+      const hbarAmount = new Hbar(Number(amount));
+      const transaction = new TransferTransaction()
+        .setTransactionId(TransactionId.generate(signerAccount))
+        .addHbarTransfer(signerAccount, hbarAmount.negated())
+        .addHbarTransfer(receiver, hbarAmount)
+        .freezeWith(client);
+
+      const signedTransaction = await transaction.signWithOperator(client);
+      const transactionList = transactionToBase64String(signedTransaction);
+
+      const params: ExecuteTransactionParams = { transactionList };
+      console.log("params: ", params);
+      const result: ExecuteTransactionResult =
+        await state.dAppConnector!.executeTransaction(params);
+      return result;
+    } catch (error) {
+      console.error("Error executing transaction: ", error);
+    }
+  },
+  handleSignMessage: async (
+    message: string,
+    publicKey: string,
+  ): Promise<{ signatureMap: any; verified: boolean }> => {
     const state = useHederaTransactions.getState();
-    if (!signerPrivateKey) throw new Error('Signer private key is required')
-    const client = Client.forTestnet()
-    client.setOperator(signerAccount, signerPrivateKey)
 
-    const hbarAmount = new Hbar(Number(amount))
+    if (!state.selectedSigner) throw new Error("Selected signer is required");
+    const params: SignMessageParams = {
+      signerAccountId:
+        "hedera:testnet:" + state.selectedSigner.getAccountId().toString(),
+      message,
+    };
+
+    const { signatureMap } = await state.dAppConnector!.signMessage(params);
+    const accountPublicKey = PublicKey.fromString(publicKey);
+    const verified = verifyMessageSignature(
+      message,
+      signatureMap,
+      accountPublicKey,
+    );
+    console.log("SignatureMap: ", signatureMap);
+    console.log("Verified: ", verified);
+    return {
+      signatureMap,
+      verified,
+    };
+  },
+  handleHederaSignAndExecuteTransaction: async (
+    receiver: AccountId,
+    amount: number,
+  ) => {
+    const state = useHederaTransactions.getState();
+    const accountId = state.selectedSigner!.getAccountId();
+    const hbarAmount = new Hbar(Number(amount));
+
     const transaction = new TransferTransaction()
-      .setTransactionId(TransactionId.generate(signerAccount))
-      .addHbarTransfer(signerAccount, hbarAmount.negated())
-      .addHbarTransfer(receiver, hbarAmount)
-      .freezeWith(client)
+      .setTransactionId(TransactionId.generate(accountId))
+      .addHbarTransfer(accountId, hbarAmount.negated())
+      .addHbarTransfer(receiver, hbarAmount);
 
-    const signedTransaction = await transaction.signWithOperator(client)
-    const transactionList = transactionToBase64String(signedTransaction)
+    const params: SignAndExecuteTransactionParams = {
+      transactionList: transactionToBase64String(transaction),
+      signerAccountId: "hedera:testnet:" + accountId.toString(),
+    };
 
-    const params: ExecuteTransactionParams = { transactionList }
+    const result = await state.dAppConnector!.signAndExecuteTransaction(params);
 
-    const result: ExecuteTransactionResult = await state.dAppConnector!.executeTransaction(params);
+    console.log("JSONResponse: ", result);
     return result;
   },
-  handleSignMessage: async () => {
-    // Implementation here
-  },
-  handleExecuteQuery: async () => {
-    // Implementation here
-  },
-  handleHederaSignAndExecuteTransaction: async () => {
-    // Implementation here
-  },
-  handleHederaSignTransaction: async (receiver: AccountId, amount: number): Promise<{ transaction: TransferTransaction }> => {
+  handleHederaSignTransaction: async (
+    receiver: AccountId,
+    amount: number,
+  ): Promise<{ transaction: TransferTransaction }> => {
     const state = useHederaTransactions.getState();
-    const accountId = state.selectedSigner!.getAccountId()
-    const hbarAmount = new Hbar(Number(amount))
+    const accountId = state.selectedSigner!.getAccountId();
+    const hbarAmount = new Hbar(Number(amount));
     const transaction = new TransferTransaction()
-      .setTransactionId(TransactionId.generate(accountId!))
-      .addHbarTransfer(accountId.toString()!, hbarAmount.negated())
-      .addHbarTransfer(receiver, hbarAmount)
+      .setTransactionId(TransactionId.generate(accountId))
+      .addHbarTransfer(accountId.toString(), hbarAmount.negated())
+      .addHbarTransfer(receiver, hbarAmount);
 
     if (!state.selectedSigner) {
-      throw new Error('No selected signer available');
+      throw new Error("No selected signer available");
     }
-    const transactionSigned = await state.selectedSigner.signTransaction(transaction);
+    const transactionSigned =
+      await state.selectedSigner.signTransaction(transaction);
 
-    console.log('Signed transaction: ', transactionSigned)
-    return { transaction: transactionSigned as TransferTransaction }
+    console.log("Signed transaction: ", transactionSigned);
+    return { transaction: transactionSigned as TransferTransaction };
   },
   handleInitConnector: async () => {
     const metadata: SignClientTypes.Metadata = {
@@ -178,57 +227,53 @@ const useHederaTransactions = create<HederaTransactions>((set) => ({
     console.log("dAppConnector: ", _dAppConnector);
     // saveData();
   },
-  setNewSession: ( session: SessionTypes.Struct) => {
+  setNewSession: (session: SessionTypes.Struct) => {
     try {
-        const state = useHederaTransactions.getState();
-        set((state) => ({ sessions: [...state.sessions, session] }));
-        const sessionAccount = session.namespaces?.hedera?.accounts?.[0];
-        const accountId = sessionAccount?.split(":").pop();
-        if (!accountId) console.error("No account id found in the session");
-        else
-          set({
-            selectedSigner: state.dAppConnector?.getSigner(
-              AccountId.fromString(accountId),
-            ),
-          });
-        console.log("New connected session: ", session);
-        console.log(
-          "New connected accounts: ",
-          session.namespaces?.hedera?.accounts,
-        );
-        
+      const state = useHederaTransactions.getState();
+      set((state) => ({ sessions: [...state.sessions, session] }));
+      const sessionAccount = session.namespaces?.hedera?.accounts?.[0];
+      const accountId = sessionAccount?.split(":").pop();
+      if (!accountId) console.error("No account id found in the session");
+      else
+        set({
+          selectedSigner: state.dAppConnector?.getSigner(
+            AccountId.fromString(accountId),
+          ),
+        });
+      console.log("New connected session: ", session);
+      console.log(
+        "New connected accounts: ",
+        session.namespaces?.hedera?.accounts,
+      );
     } catch (error) {
-        console.error("Error setting new session: ", error);
-        
+      console.error("Error setting new session: ", error);
     }
-   
   },
   handleConnect: async (extensionId?: string) => {
-      try {
-          const state = useHederaTransactions.getState();
-          if (!state.dAppConnector) throw new Error("DAppConnector is required");
-          let session: SessionTypes.Struct;
-          if (extensionId)
-              session = await state.dAppConnector.connectExtension(extensionId);
-          else 
-              session = await state.dAppConnector.openModal();
-          console.log("session: ", session);
-            useHederaTransactions.getState().setNewSession(session)
-      } catch (error) {
-          console.error("Error connecting session:", error);
-      }
+    try {
+      const state = useHederaTransactions.getState();
+      if (!state.dAppConnector) throw new Error("DAppConnector is required");
+      let session: SessionTypes.Struct;
+      if (extensionId)
+        session = await state.dAppConnector.connectExtension(extensionId);
+      else session = await state.dAppConnector.openModal();
+      console.log("session: ", session);
+      useHederaTransactions.getState().setNewSession(session);
+    } catch (error) {
+      console.error("Error connecting session:", error);
+    }
   },
   handleDisconnectSessions: async () => {
     const state = useHederaTransactions.getState();
-    await state.dAppConnector!.disconnectAll()
-    set({ sessions: [] })
-    set({ signers: [] })
-    set({ selectedSigner: null })
+    await state.dAppConnector!.disconnectAll();
+    set({ sessions: [] });
+    set({ signers: [] });
+    set({ selectedSigner: null });
     // setModalData({ status: 'Success', message: 'Session disconnected' })
   },
 
-  handleClearData:()=>{
+  handleClearData: () => {
     // Implementation here
-  } ,
+  },
 }));
 export default useHederaTransactions;
