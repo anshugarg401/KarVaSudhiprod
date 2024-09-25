@@ -7,56 +7,14 @@ import { Textarea } from "~/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Label } from "~/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar"
-import { Progress } from "~/components/ui/progress"
-import { Slider } from "~/components/ui/slider"
-import { Switch } from "~/components/ui/switch"
 import { toast } from "~/components/ui/use-toast"
 import { Loader2, Upload, Coins, Lock, Unlock, Clock, Plus, Leaf, Map, BarChart2, PieChart, MapPin, AlertTriangle, Wallet, TreePine , Users, House , Sun, Moon, Bell, ArrowUpRight, ArrowDownRight } from "lucide-react"
-import Image from 'next/image'
-import { format } from 'date-fns';
-interface NFT {
-  id: number
-  name: string
-  image: string
-  type: 'land' | 'tree'
-  price: number
-  description: string
-  location: string
-  communityImpact: string
-  rarity: 'common' | 'uncommon' | 'rare' | 'legendary'
-}
+import Notification from './notification'
+import Dashboard from './Dashboard'
+import Staking from './Staking'
+import Marketplace from './Marketplace'
+import type {NFT, ResourceData, Notification, StakedNFT} from '~/types/index'
 
-interface StakedNFT {
-  id: number
-  landNFT: NFT
-  treeNFT: NFT
-  stakedAt: Date
-  stakingPeriod: number
-  rewardRate: number
-  location: {
-    latitude: number
-    longitude: number
-  }
-  status: 'alive' | 'dead'
-  healthScore: number
-}
-
-interface ResourceData {
-  totalLand: number
-  availableLand: number
-  totalTrees: number
-  availableTrees: number
-  carbonOffset: number
-}
-
-interface Notification {
-  id: number
-  message: string
-  type: 'info' | 'success' | 'warning' | 'error'
-  timestamp: Date
-}
 
 const fetchRealTimeData = (): ResourceData => {
   return {
@@ -68,77 +26,9 @@ const fetchRealTimeData = (): ResourceData => {
   }
 }
 
-const BarChartComponent = ({ data }: { data: ResourceData }) => {
-  const maxValue = Math.max(data.totalLand, data.totalTrees, data.carbonOffset)
-  const landHeight = (data.availableLand / maxValue) * 100
-  const treeHeight = (data.availableTrees / maxValue) * 100
-  const carbonHeight = (data.carbonOffset / maxValue) * 100
+//barchart
 
-  return (
-    <div className="flex items-end h-64 space-x-4">
-      <div className="flex flex-col items-center">
-        <div className="w-16 bg-green-300" style={{ height: `${landHeight}%` }}></div>
-        <span className="mt-2 text-sm text-green-800">Land</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <div className="w-16 bg-green-500" style={{ height: `${treeHeight}%` }}></div>
-        <span className="mt-2 text-sm text-green-800">Trees</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <div className="w-16 bg-green-700" style={{ height: `${carbonHeight}%` }}></div>
-        <span className="mt-2 text-sm text-green-800">Carbon Offset</span>
-      </div>
-    </div>
-  )
-}
 
-const PieChartComponent = ({ data }: { data: ResourceData }) => {
-  const total = data.totalLand + data.totalTrees + data.carbonOffset
-  const landPercentage = (data.availableLand / total) * 100
-  const treePercentage = (data.availableTrees / total) * 100
-  const carbonPercentage = (data.carbonOffset / total) * 100
-
-  return (
-    <div className="flex space-x-4">
-      <div className="flex flex-col items-center">
-        <div className="relative w-24 h-24">
-          <div className="absolute inset-0 border-4 border-green-200 rounded-full"></div>
-          <div 
-            className="absolute inset-0 border-4 border-green-400 rounded-full"
-            style={{ 
-              clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos((landPercentage / 100) * Math.PI * 2)}% ${50 - 50 * Math.sin((landPercentage / 100) * Math.PI * 2)}%, 50% 50%)`
-            }}
-          ></div>
-        </div>
-        <span className="mt-2 text-sm text-green-800">Land: {landPercentage.toFixed(1)}%</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <div className="relative w-24 h-24">
-          <div className="absolute inset-0 border-4 border-green-200 rounded-full"></div>
-          <div 
-            className="absolute inset-0 border-4 border-green-600 rounded-full"
-            style={{ 
-              clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos((treePercentage / 100) * Math.PI * 2)}% ${50 - 50 * Math.sin((treePercentage / 100) * Math.PI * 2)}%, 50% 50%)`
-            }}
-          ></div>
-        </div>
-        <span className="mt-2 text-sm text-green-800">Trees: {treePercentage.toFixed(1)}%</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <div className="relative w-24 h-24">
-          <div className="absolute inset-0 border-4 border-green-200 rounded-full"></div>
-          <div 
-            className="absolute inset-0 border-4 border-green-800 rounded-full"
-            style={{ 
-              clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos((carbonPercentage / 100) * Math.PI * 2)}% ${50 - 50 * Math.sin((carbonPercentage / 100) * Math.PI * 2)}%, 50% 50%)`
-            }}
-          ></div>
-        </div>
-        <span className="mt-2 text-sm text-green-800">Carbon Offset: {carbonPercentage.toFixed(1)}%</span>
-      </div>
-    </div>
-  )
-}
 
 export function NftPlatform() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -152,8 +42,7 @@ export function NftPlatform() {
   const [tokensClaimed, setTokensClaimed] = useState(500)
   const [kv1Balance, setKv1Balance] = useState(1000)
   const [sudhiBalance, setSudhiBalance] = useState(750)
-  const [selectedLandNFT, setSelectedLandNFT] = useState<NFT | null>(null)
-  const [selectedTreeNFT, setSelectedTreeNFT] = useState<NFT | null>(null)
+
   const [resourceData, setResourceData] = useState<ResourceData>(fetchRealTimeData())
   const [isWalletConnected, setIsWalletConnected] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -205,7 +94,7 @@ export function NftPlatform() {
         const availableLandNFT = ownedNFTs.find(nft => nft.type === 'land')
         const availableTreeNFT = ownedNFTs.find(nft => nft.type === 'tree')
         if (availableLandNFT && availableTreeNFT) {
-          handleStake(availableLandNFT, availableTreeNFT)
+           handleStake(availableLandNFT, availableTreeNFT)
         }
       }, 60000) // Auto-stake every minute if enabled
       return () => clearInterval(autoStakeTimer)
@@ -249,6 +138,24 @@ export function NftPlatform() {
     setNftDescription('')
     setNftImage(null)
     addNotification(`Successfully minted ${newNFT.name}!`, 'success')
+  }
+  const calculateTimeRemaining = (nft: StakedNFT) => {
+    const endTime = new Date(nft.stakedAt.getTime() + nft.stakingPeriod * 24 * 60 * 60 * 1000)
+    const timeRemaining = endTime.getTime() - currentTime.getTime()
+    return Math.max(0, timeRemaining)
+  }
+
+  const formatTimeRemaining = (timeRemaining: number) => {
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
+    return `${days}d ${hours}h ${minutes}m`
+  }
+
+  const calculateProgress = (nft: StakedNFT) => {
+    const totalStakingTime = nft.stakingPeriod * 24 * 60 * 60 * 1000
+    const elapsedTime = currentTime.getTime() - nft.stakedAt.getTime()
+    return Math.min(100, (elapsedTime / totalStakingTime) * 100)
   }
 
   const handleStake = async (landNFT: NFT, treeNFT: NFT) => {
@@ -333,24 +240,6 @@ export function NftPlatform() {
     }
   }
 
-  const calculateTimeRemaining = (nft: StakedNFT) => {
-    const endTime = new Date(nft.stakedAt.getTime() + nft.stakingPeriod * 24 * 60 * 60 * 1000)
-    const timeRemaining = endTime.getTime() - currentTime.getTime()
-    return Math.max(0, timeRemaining)
-  }
-
-  const formatTimeRemaining = (timeRemaining: number) => {
-    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24))
-    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
-    return `${days}d ${hours}h ${minutes}m`
-  }
-
-  const calculateProgress = (nft: StakedNFT) => {
-    const totalStakingTime = nft.stakingPeriod * 24 * 60 * 60 * 1000
-    const elapsedTime = currentTime.getTime() - nft.stakedAt.getTime()
-    return Math.min(100, (elapsedTime / totalStakingTime) * 100)
-  }
 
   const calculateRewards = (nft: StakedNFT) => {
     const elapsedTime = currentTime.getTime() - nft.stakedAt.getTime()
@@ -440,99 +329,8 @@ export function NftPlatform() {
             <TabsTrigger value="market" className="text-green-100 data-[state=active]:bg-green-600">Market</TabsTrigger>
           </TabsList>
           <TabsContent value="dashboard">
-            <Card className="bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-2xl text-green-800">Your Forest Dashboard</CardTitle>
-                <CardDescription className="text-green-600">
-                  Monitor your staked NFTs and their impact on Kenyan forests
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {stakedNFTs.map(nft => (
-                    <Card key={nft.id} className="bg-white">
-                      <CardHeader>
-                        <div className="flex items-center space-x-4">
-                          <Avatar>
-                            <AvatarImage src={nft.landNFT.image} alt={nft.landNFT.name} />
-                            <AvatarFallback>{nft.landNFT.name.slice(0, 2)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <CardTitle className="text-green-800">{nft.landNFT.name} + {nft.treeNFT.name}</CardTitle>
-                            <CardDescription className="text-green-600">Staked {nft.stakedAt.toLocaleDateString()}</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-green-700">Staking Progress</span>
-                            <span className="text-sm font-medium text-green-700">{calculateProgress(nft).toFixed(0)}%</span>
-                          </div>
-                          <Progress value={calculateProgress(nft)} className="w-full" />
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-600">
-                              {formatTimeRemaining(calculateTimeRemaining(nft))} remaining
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Coins className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-600">
-                              {calculateRewards(nft)} KV1 tokens earned
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-600">
-                              Location: {nft.location.latitude.toFixed(4)}, {nft.location.longitude.toFixed(4)}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Leaf className={`h-4 w-4 ${nft.status === 'alive' ? 'text-green-500' : 'text-red-500'}`} />
-                            <span className={`text-sm ${nft.status === 'alive' ? 'text-green-500' : 'text-red-500'}`}>
-                              Status: {nft.status.charAt(0).toUpperCase() + nft.status.slice(1)}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Sun className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-600">
-                              Health Score: {nft.healthScore.toFixed(0)}%
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        {nft.status === 'alive' ? (
-                          <Button 
-                            variant="outline" 
-                            className="w-full bg-green-100 text-green-800 hover:bg-green-200"
-                            onClick={() => handleUnstake(nft.id)}
-                            disabled={calculateTimeRemaining(nft) > 0}
-                          >
-                            {calculateTimeRemaining(nft) > 0 ? (
-                              <Lock className="mr-2 h-4 w-4" />
-                            ) : (
-                              <Unlock className="mr-2 h-4 w-4" />
-                            )}
-                            {calculateTimeRemaining(nft) > 0 ? 'Locked' : 'Unstake'}
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            className="w-full bg-red-100 text-red-800 hover:bg-red-200"
-                            onClick={() => handleClaimDeadTree(nft.id)}
-                          >
-                            <AlertTriangle className="mr-2 h-4 w-4" />
-                            Claim Dead Tree
-                          </Button>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+              {/* // Dashboard content */}
+            <Dashboard stakedNFTs={stakedNFTs} calculateProgress={calculateProgress} calculateTimeRemaining={calculateTimeRemaining} formatTimeRemaining={formatTimeRemaining} handleUnstake={handleUnstake} handleClaimDeadTree={handleClaimDeadTree} calculateRewards={calculateRewards}/>
           </TabsContent>
           <TabsContent value="mint">
             <Card className="bg-green-50">
@@ -602,233 +400,13 @@ export function NftPlatform() {
             </Card>
           </TabsContent>
           <TabsContent value="stake">
-            <Card className="bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-2xl text-green-800">Stake Your NFTs</CardTitle>
-                <CardDescription className="text-green-600">
-                  Stake your Land and Tree NFTs to earn rewards and support Kenyan forests
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-green-800">Select Land NFT</h3>
-                    {ownedNFTs.filter(nft => nft.type === 'land').map((nft) => (
-                      <div key={nft.id} className="flex items-center justify-between p-2 border border-green-200 rounded mb-2">
-                        <div className="flex items-center">
-                          <img src={nft.image} alt={nft.name} className="w-10 h-10 rounded mr-2" />
-                          <span className="text-green-700">{nft.name}</span>
-                        </div>
-                        <Button 
-                          variant={selectedLandNFT?.id === nft.id ? "secondary" : "outline"}
-                          onClick={() => setSelectedLandNFT(nft)}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          <Map className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-green-800">Select Tree NFT</h3>
-                    {ownedNFTs.filter(nft => nft.type === 'tree').map((nft) => (
-                      <div key={nft.id} className="flex items-center justify-between p-2 border border-green-200 rounded mb-2">
-                        <div className="flex items-center">
-                          <img src={nft.image} alt={nft.name} className="w-10 h-10 rounded mr-2" />
-                          <span className="text-green-700">{nft.name}</span>
-                        </div>
-                        <Button 
-                          variant={selectedTreeNFT?.id === nft.id ? "secondary" : "outline"}
-                          onClick={() => setSelectedTreeNFT(nft)}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          <Leaf className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Label htmlFor="staking-period" className="text-green-700">Staking Period</Label>
-                  <Select value={stakingPeriod} onValueChange={setStakingPeriod}>
-                    <SelectTrigger id="staking-period" className="border-green-300 focus:border-green-500">
-                      <SelectValue placeholder="Select staking period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 Days</SelectItem>
-                      <SelectItem value="60">60 Days</SelectItem>
-                      <SelectItem value="90">90 Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="mt-4">
-                  <Label htmlFor="staking-multiplier" className="text-green-700">Staking Multiplier</Label>
-                  <Slider
-                    id="staking-multiplier"
-                    min={1}
-                    max={5}
-                    step={0.1}
-                    value={[stakingMultiplier]}
-                    onValueChange={(value) => setStakingMultiplier(value[0])}
-                    className="mt-2"
-                  />
-                  <p className="text-sm text-green-600 mt-1">Current multiplier: {stakingMultiplier.toFixed(1)}x</p>
-                </div>
-                <div className="mt-4 flex items-center space-x-2">
-                  <Switch
-                    id="auto-stake"
-                    checked={autoStakeEnabled}
-                    onCheckedChange={setAutoStakeEnabled}
-                  />
-                  <Label htmlFor="auto-stake" className="text-green-700">Enable Auto-Staking</Label>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-green-600">Staking Fee: 50 SUDHI</p>
-                  <p className="text-sm text-green-600">This fee goes to the organization welfare pool.</p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-green-600 hover:bg-green-700 text-white" 
-                  onClick={() => selectedLandNFT && selectedTreeNFT && handleStake(selectedLandNFT, selectedTreeNFT)} 
-                  disabled={isStaking || !selectedLandNFT || !selectedTreeNFT || !isWalletConnected}
-                >
-                  {isStaking ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Staking...
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="mr-2 h-4 w-4" />
-                      Stake NFTs
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
+         <Staking ownedNFTs={ownedNFTs} isStaking={isStaking} stakingPeriod={stakingPeriod} stakingMultiplier={stakingMultiplier} autoStakeEnabled={autoStakeEnabled} setStakingPeriod={setStakingPeriod} setStakingMultiplier={setStakingMultiplier} setAutoStakeEnabled={setAutoStakeEnabled} isWalletConnected={isWalletConnected} handleStake={handleStake}/>
           </TabsContent>
           <TabsContent value="market">
-            <Card className="bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-2xl text-green-800">Kenyan Forest NFT Market</CardTitle>
-                <CardDescription className="text-green-600">
-                  Invest in the future of Kenya&apos;s forests and support local communities
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 text-green-800">Resource Availability</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-green-700">
-                        <span>Available Land:</span>
-                        <span>{resourceData.availableLand} / {resourceData.totalLand}</span>
-                      </div>
-                      <Progress value={(resourceData.availableLand / resourceData.totalLand) * 100} className="w-full bg-green-200" />
-                      <div className="flex justify-between text-green-700">
-                        <span>Available Trees:</span>
-                        <span>{resourceData.availableTrees} / {resourceData.totalTrees}</span>
-                      </div>
-                      <Progress value={(resourceData.availableTrees / resourceData.totalTrees) * 100} className="w-full bg-green-200" />
-                      <div className="flex justify-between text-green-700">
-                        <span>Carbon Offset:</span>
-                        <span>{resourceData.carbonOffset} tons</span>
-                      </div>
-                      <Progress value={(resourceData.carbonOffset / 10000) * 100} className="w-full bg-green-200"  />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 text-green-800">Resource Charts</h3>
-                    <div className="flex space-x-4">
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 text-green-700">Conservation Progress</h4>
-                        <BarChartComponent data={resourceData} />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 text-green-700">Resource Distribution</h4>
-                        <PieChartComponent data={resourceData} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-8">
-                  <h3 className="text-xl font-semibold mb-4 text-green-800">Available NFTs</h3>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {availableNFTs.map((nft) => (
-                      <Card key={nft.id} className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300">
-                        <CardHeader>
-                          <CardTitle className="text-lg text-green-800">{nft.name}</CardTitle>
-                          <CardDescription className="text-green-700">{nft.type === 'land' ? 'Land NFT' : 'Tree NFT'}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="aspect-w-16 aspect-h-9 mb-4">
-                            <img src={nft.image} alt={nft.name} className="object-cover rounded-md" />
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">{nft.description}</p>
-                          <div className="flex items-center text-sm text-green-700 mb-2">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {nft.location}
-                          </div>
-                          <div className="flex items-center text-sm text-green-700 mb-4">
-                            <Users className="h-4 w-4 mr-1" />
-                            {nft.communityImpact}
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-green-800">{nft.price} SUDHI</span>
-                            <div className="flex items-center">
-                              <span className={`text-sm mr-2 ${
-                                nft.rarity === 'legendary' ? 'text-yellow-500' :
-                                nft.rarity === 'rare' ? 'text-purple-500' :
-                                nft.rarity === 'uncommon' ? 'text-blue-500' :
-                                'text-gray-500'
-                              }`}>
-                                {nft.rarity.charAt(0).toUpperCase() + nft.rarity.slice(1)}
-                              </span>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleBuyNFT(nft)}
-                                disabled={sudhiBalance < nft.price || !isWalletConnected}
-                                className="bg-green-500 text-white hover:bg-green-600"
-                              >
-                                {nft.type === 'land' ? 
-                               ( <House  className="mr-2 h-4 w-4" />) : (<TreePine className="mr-2 h-4 w-4" />)}
-                                Buy NFT
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    <Marketplace  resourceData={resourceData} availableNFTs={availableNFTs} sudhiBalance={sudhiBalance} isWalletConnected={isWalletConnected} handleBuyNFT={handleBuyNFT}/>
           </TabsContent>
         </Tabs>
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-4 text-green-100">Recent Notifications</h3>
-          <div className="space-y-2">
-            {notifications.map((notification) => (
-              <div key={notification.id} className={`p-3 rounded-md ${
-                notification.type === 'success' ? 'bg-green-100 text-green-800' :
-                notification.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                notification.type === 'error' ? 'bg-red-100 text-red-800' :
-                'bg-blue-100 text-blue-800'
-              }`}>
-                <div className="flex items-center">
-                  {notification.type === 'success' && <ArrowUpRight className="h-4 w-4 mr-2" />}
-                  {notification.type === 'warning' && <AlertTriangle className="h-4 w-4 mr-2" />}
-                  {notification.type === 'error' && <ArrowDownRight className="h-4 w-4 mr-2" />}
-                  {notification.type === 'info' && <Bell className="h-4 w-4 mr-2" />}
-                  <span>{notification.message}</span>
-                </div>
-                <span className="text-xs mt-1 block">{notification.timestamp.toLocaleTimeString()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Notification notifications={notifications} />
       </div>
     </div>
   )
