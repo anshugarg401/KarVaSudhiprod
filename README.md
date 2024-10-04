@@ -45,7 +45,7 @@ KārVāSudhī not only provides a scalable solution to global carbon offsetting 
        npm install
        npm run dev
    
-## Screenshots/Demo
+## Demo Videos
 
 
 
