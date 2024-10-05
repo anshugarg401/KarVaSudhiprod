@@ -1,0 +1,45 @@
+{
+  "functions": [
+    {
+      "name": "hello",
+      "parameters": [
+        {
+          "type": "String",
+          "optional": false,
+          "forwardedValue": false,
+          "name": "name"
+        }
+      ],
+      "returnType": {
+        "type": "String",
+        "optional": false,
+        "forwardedValue": false
+      },
+      "constant": false,
+      "send": false,
+      "sendUnsafe": false,
+      "receive": false,
+      "claim": false
+    },
+    {
+      "name": "deploy",
+      "parameters": [],
+      "returnType": {
+        "type": "Boolean"
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "hello",
+      "parameters": [
+        {
+          "type": "String",
+          "optional": false,
+          "forwardedValue": false,
+          "name": "name"
+        }
+      ]
+    }
+  ]
+}
