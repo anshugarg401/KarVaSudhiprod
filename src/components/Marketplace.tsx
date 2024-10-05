@@ -4,6 +4,7 @@ import { Progress } from '@radix-ui/react-progress'
 import PieChartComponent from './Piechart'
 import { Button } from './ui/button'
 import { House,MapPin,TreePine, Users } from 'lucide-react'
+import Image from 'next/image'
 import type {NFT, ResourceData} from '~/types/index'
 interface Props {
     handleBuyNFT: (nft: NFT) => void
@@ -67,9 +68,8 @@ function Marketplace({resourceData, handleBuyNFT,availableNFTs,isWalletConnected
                 <CardDescription className="text-green-700">{nft.type === 'land' ? 'Land NFT' : 'Tree NFT'}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="aspect-w-16 aspect-h-9 mb-4">
-                  <img src={nft.image} alt={nft.name} className="object-cover rounded-md" />
-                </div>
+                  <Image src={nft.image} alt={nft.name} layout="responsive" width={16} height={9} className="object-cover rounded-md" />
+                  <Image src={nft.image} alt={nft.name} layout="responsive" width={16} height={9} className="object-cover rounded-md" />
                 <p className="text-sm text-gray-600 mb-2">{nft.description}</p>
                 <div className="flex items-center text-sm text-green-700 mb-2">
                   <MapPin className="h-4 w-4 mr-1" />

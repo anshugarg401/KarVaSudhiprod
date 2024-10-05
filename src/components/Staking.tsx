@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { Leaf, Loader2, Lock, MapPin } from 'lucide-react'
@@ -38,7 +39,8 @@ const [selectedTreeNFT, setSelectedTreeNFT] = useState<NFT | null>(null)
           {ownedNFTs.filter(nft => nft.type === 'land').map((nft) => (
             <div key={nft.id} className="flex items-center justify-between p-2 border border-green-200 rounded mb-2">
               <div className="flex items-center">
-                <img src={nft.image} alt={nft.name} className="w-10 h-10 rounded mr-2" />
+                <Image src={nft.image} alt={nft.name} width={40} height={40} className="rounded mr-2" />
+                <Image src={nft.image} alt={nft.name} width={40} height={40} className="rounded mr-2" />
                 <span className="text-green-700">{nft.name}</span>
               </div>
               <Button 
@@ -56,7 +58,7 @@ const [selectedTreeNFT, setSelectedTreeNFT] = useState<NFT | null>(null)
           {ownedNFTs.filter(nft => nft.type === 'tree').map((nft) => (
             <div key={nft.id} className="flex items-center justify-between p-2 border border-green-200 rounded mb-2">
               <div className="flex items-center">
-                <img src={nft.image} alt={nft.name} className="w-10 h-10 rounded mr-2" />
+                <Image src={nft.image} alt={nft.name} width={40} height={40} className="rounded mr-2" />
                 <span className="text-green-700">{nft.name}</span>
               </div>
               <Button 
@@ -91,7 +93,7 @@ const [selectedTreeNFT, setSelectedTreeNFT] = useState<NFT | null>(null)
           max={5}
           step={0.1}
           value={[stakingMultiplier]}
-          onValueChange={(value) => setStakingMultiplier(value[0])}
+          onValueChange={(value: number[]) => setStakingMultiplier(value[0] ?? stakingMultiplier)}
           className="mt-2"
         />
         <p className="text-sm text-green-600 mt-1">Current multiplier: {stakingMultiplier.toFixed(1)}x</p>
