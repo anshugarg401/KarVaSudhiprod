@@ -32,7 +32,7 @@ KārVāSudhī not only provides a scalable solution to global carbon offsetting 
 
 1. **Clone the Repository:**
    ```bash
-   git clone [https://github.com/your-username/socifinet.git](https://github.com/anshugarg401/KarVaSudhiprod/tree/KarVaSudhi_Brian)
+   git clone [https://github.com/anshugarg401/KarVaSudhiprod/tree/neoxKarVaSudhi](https://github.com/anshugarg401/KarVaSudhiprod.git)
    cd KarVaSudhiprod
 
 2. **Backend Setup**
