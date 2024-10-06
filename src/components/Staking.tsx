@@ -39,7 +39,7 @@ const [selectedTreeNFT, setSelectedTreeNFT] = useState<NFT | null>(null)
           {ownedNFTs.filter(nft => nft.type === 'land').map((nft) => (
             <div key={nft.id} className="flex items-center justify-between p-2 border border-green-200 rounded mb-2">
               <div className="flex items-center">
-                <Image src={nft.image} alt={nft.name} width={40} height={40} className="rounded mr-2" />
+                {/* <Image src={nft.image} alt={nft.name} width={40} height={40} className="rounded mr-2" /> */}
                 <Image src={nft.image} alt={nft.name} width={40} height={40} className="rounded mr-2" />
                 <span className="text-green-700">{nft.name}</span>
               </div>

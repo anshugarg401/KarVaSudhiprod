@@ -68,7 +68,7 @@ function Marketplace({resourceData, handleBuyNFT,availableNFTs,isWalletConnected
                 <CardDescription className="text-green-700">{nft.type === 'land' ? 'Land NFT' : 'Tree NFT'}</CardDescription>
               </CardHeader>
               <CardContent>
-                  <Image src={nft.image} alt={nft.name} layout="responsive" width={16} height={9} className="object-cover rounded-md" />
+                  {/* <Image src={nft.image} alt={nft.name} layout="responsive" width={16} height={9} className="object-cover rounded-md" /> */}
                   <Image src={nft.image} alt={nft.name} layout="responsive" width={16} height={9} className="object-cover rounded-md" />
                 <p className="text-sm text-gray-600 mb-2">{nft.description}</p>
                 <div className="flex items-center text-sm text-green-700 mb-2">

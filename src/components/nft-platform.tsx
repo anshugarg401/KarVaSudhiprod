@@ -14,7 +14,8 @@ import Dashboard from './Dashboard'
 import Staking from './Staking'
 import Marketplace from './Marketplace'
 import type {NFT, ResourceData, Notification, StakedNFT} from '~/types/index'
-
+import{ Trees} from "~/asset/treenft/index.ts"
+import{ Land }from "~/asset/landnft/index.ts"
 
 const fetchRealTimeData = (): ResourceData => {
   return {
@@ -51,15 +52,15 @@ export function NftPlatform() {
   const [stakingMultiplier, setStakingMultiplier] = useState(1)
 
   const [ownedNFTs, setOwnedNFTs] = useState<NFT[]>([
-    { id: 1, name: 'Kakamega Forest Plot', image: '/placeholder.svg?height=100&width=100', type: 'land', price: 100, description: 'A lush plot in the heart of Kakamega Forest', location: 'Kakamega, Kenya', communityImpact: 'Supports local beekeepers', rarity: 'uncommon' },
-    { id: 2, name: 'Meru Oak', image: '/placeholder.svg?height=100&width=100', type: 'tree', price: 50, description: 'A majestic Meru Oak tree', location: 'Meru, Kenya', communityImpact: 'Provides shade for coffee plants', rarity: 'common' },
+    { id: 1, name: 'Kakamega Forest Plot', image: Land.land1 , type: 'land', price: 100, description: 'A lush plot in the heart of Kakamega Forest', location: 'Kakamega, Kenya', communityImpact: 'Supports local beekeepers', rarity: 'uncommon' },
+    { id: 2, name: 'Meru Oak', image: Trees.tree4, type: 'tree', price: 50, description: 'A majestic Meru Oak tree', location: 'Meru, Kenya', communityImpact: 'Provides shade for coffee plants', rarity: 'common' },
   ])
 
   const [stakedNFTs, setStakedNFTs] = useState<StakedNFT[]>([
     { 
       id: 1, 
-      landNFT: { id: 5, name: "Mount Kenya Forest Plot", image: "/placeholder.svg?height=100&width=100", type: 'land', price: 150, description: 'A scenic plot near Mount Kenya', location: 'Mount Kenya, Kenya', communityImpact: 'Supports local wildlife conservation efforts', rarity: 'rare' },
-      treeNFT: { id: 6, name: "Acacia Tree", image: "/placeholder.svg?height=100&width=100", type: 'tree', price: 70, description: 'An iconic Acacia tree', location: 'Maasai Mara, Kenya', communityImpact: 'Provides habitat for native bird species', rarity: 'uncommon' },
+      landNFT: { id: 5, name: "Mount Kenya Forest Plot", image: Land.land2  , type: 'land', price: 150, description: 'A scenic plot near Mount Kenya', location: 'Mount Kenya, Kenya', communityImpact: 'Supports local wildlife conservation efforts', rarity: 'rare' },
+      treeNFT: { id: 6, name: "Acacia Tree", image: Trees.tree1, type: 'tree', price: 70, description: 'An iconic Acacia tree', location: 'Maasai Mara, Kenya', communityImpact: 'Provides habitat for native bird species', rarity: 'uncommon' },
       stakedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), 
       stakingPeriod: 30, 
       rewardRate: 15,
@@ -70,10 +71,10 @@ export function NftPlatform() {
   ])
 
   const [availableNFTs, setAvailableNFTs] = useState<NFT[]>([
-    { id: 7, name: 'Aberdare Forest Plot', image: '/placeholder.svg?height=100&width=100', type: 'land', price: 200, description: 'A misty plot in the Aberdare Forest', location: 'Aberdare, Kenya', communityImpact: 'Supports local water conservation projects', rarity: 'rare' },
-    { id: 8, name: 'Baobab Tree', image: '/placeholder.svg?height=100&width=100', type: 'tree', price: 80, description: 'An ancient Baobab tree', location: 'Tsavo, Kenya', communityImpact: 'Provides food and medicine for local communities', rarity: 'legendary' },
-    { id: 9, name: 'Coastal Mangrove Plot', image: '/placeholder.svg?height=100&width=100', type: 'land', price: 180, description: 'A vital mangrove ecosystem plot', location: 'Lamu, Kenya', communityImpact: 'Protects coastline and supports local fisheries', rarity: 'uncommon' },
-    { id: 10, name: 'Bamboo Grove', image: '/placeholder.svg?height=100&width=100', type: 'tree', price: 90, description: 'A fast-growing bamboo grove', location: 'Kisumu, Kenya', communityImpact: 'Provides sustainable building material for local artisans', rarity: 'common' },
+    { id: 7, name: 'Aberdare Forest Plot', image: Land.land3, type: 'land', price: 200, description: 'A misty plot in the Aberdare Forest', location: 'Aberdare, Kenya', communityImpact: 'Supports local water conservation projects', rarity: 'rare' },
+    { id: 8, name: 'Baobab Tree', image: Trees.tree2, type: 'tree', price: 80, description: 'An ancient Baobab tree', location: 'Tsavo, Kenya', communityImpact: 'Provides food and medicine for local communities', rarity: 'legendary' },
+    { id: 9, name: 'Coastal Mangrove Plot', image: Land.land4, type: 'land', price: 180, description: 'A vital mangrove ecosystem plot', location: 'Lamu, Kenya', communityImpact: 'Protects coastline and supports local fisheries', rarity: 'uncommon' },
+    { id: 10, name: 'Bamboo Grove', image: Trees.tree3, type: 'tree', price: 90, description: 'A fast-growing bamboo grove', location: 'Kisumu, Kenya', communityImpact: 'Provides sustainable building material for local artisans', rarity: 'common' },
   ])
 
   useEffect(() => {
