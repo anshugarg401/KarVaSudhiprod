@@ -56,7 +56,7 @@ https://github.com/user-attachments/assets/fa40482b-0d91-4a59-86fa-ac960941500f
 - **Nest.js**
 - **T3 Stack**
 - **NEO-ONE**
-- 
+- **neow3js**
 
 ## Contributing
   Contributions are welcome! Please feel free to submit pull requests or open issues.
