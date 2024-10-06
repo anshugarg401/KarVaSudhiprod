@@ -1,4 +1,3 @@
-# Create T3 App
 
 # KarVaSudhi
 
@@ -55,8 +54,9 @@ KārVāSudhī not only provides a scalable solution to global carbon offsetting 
 
 - **React.js**
 - **Node.js**
-- 
-- 
+- **Nest.js**
+- **T3 Stack**
+- **NEO-ONE**
 - 
 
 ## Contributing
