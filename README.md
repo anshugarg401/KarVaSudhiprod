@@ -1,9 +1,9 @@
 
 # KarVaSudhi
 
-KārVāSudhī is an innovative, gamified NFT platform designed to foster environmental sustainability through the creation and generation of carbon credits. Leveraging the power of blockchain technology on the Neo X chain, KārVāSudhī introduces a decentralized framework that empowers users—both individuals and organizations—to contribute actively to the fight against climate change.
+This is an innovative, gamified NFT platform aimed at promoting environmental sustainability through conservation and reforestation efforts in Kenya. Powered by the Neo blockchain and the NeoX chain, KārVāSudhī offers users the opportunity to contribute to forest restoration by staking NFTs tied to land and trees, generating real-world environmental impact.
 
-Our platform focuses on Decentralized Autonomous Community (DAC) projects, with an initial implementation in Kenya, aiming to tackle pressing environmental challenges while providing participants with rewarding staking opportunities. By staking NFTs, users directly engage in carbon credit production, turning environmental stewardship into an engaging and socially beneficial experience.
+Our project focuses on Kenyan forests as the first step in a broader environmental initiative, with plans to expand to Direct Air Capture (DAC) projects in the future. Users can support forest conservation and carbon offset efforts while earning rewards through staking and NFT ownership.
 
 KārVāSudhī not only provides a scalable solution to global carbon offsetting but also fosters community involvement and awareness around climate issues. Through this innovative approach, we envision a future where gamification and blockchain converge to drive impactful change and support sustainable practices worldwide.
 
