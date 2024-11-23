@@ -41,7 +41,7 @@ This repository contains the smart contracts, scripts, and integrations required
 ### **Install Dependencies**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/karvasudhi.git
+   git clone https://github.com/anshugarg401/KarVaSudhiprod/tree/dacKarVaSudhi.git
    cd karvasudhi
    ```
 
