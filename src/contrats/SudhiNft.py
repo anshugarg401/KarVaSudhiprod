@@ -1,95 +1,56 @@
 from boa3.builtin import public, NeoMetadata, metadata, create_event
 from boa3.builtin.type import UInt160
-from boa3.builtin.interop.runtime import check_witness
 from boa3.builtin.interop.storage import get, put, delete
-from boa3.builtin.interop.blockchain import get_current_index
+from boa3.builtin.interop.runtime import get_time
 
 # Metadata
 NEO_METADATA = NeoMetadata()
 NEO_METADATA.author = "KarVaSudhi Foundation"
-NEO_METADATA.description = "SUDHI NFT Smart Contract"
+NEO_METADATA.description = "SUDHI NFTs representing 1 tonne of sequestered carbon"
+NEO_METADATA.email = "support@karvasudhi.tech"
 
 # Events
 NFTMinted = create_event(
-    [("owner", UInt160), ("nft_id", int), ("carbon_amount", int), ("timestamp", int)],
-    "NFTMinted"
+    [("owner", UInt160), ("nft_id", int), ("timestamp", int)], "NFTMinted"
 )
-NFTTransferred = create_event(
-    [("from", UInt160), ("to", UInt160), ("nft_id", int)],
-    "NFTTransferred"
+NFTBurned = create_event(
+    [("nft_id", int), ("timestamp", int)], "NFTBurned"
 )
 
 # Storage Keys
-OWNER_STORAGE_KEY = b'owner_'
-NFT_DATA_STORAGE_KEY = b'data_'
-NFT_COUNTER_KEY = b'nft_counter'
+NEXT_ID_KEY = b'sudhi_next_id'
+NFT_DATA_KEY = b'sudhi_data_'
 
 @public
-def mint_nft(owner: UInt160, carbon_amount: int) -> bool:
+def mint_sudhi(owner: UInt160, amount: int) -> bool:
     """
-    Mint a new NFT representing a carbon sequestration amount.
-    
-    Args:
-        owner (UInt160): The address of the NFT owner.
-        carbon_amount (int): The carbon amount represented by the NFT in tonnes.
-    
-    Returns:
-        bool: True if minting is successful.
+    Mints SUDHI NFTs for carbon sequestration based on DAC readings.
     """
-    assert check_witness(owner), "Unauthorized minting attempt."
-    assert carbon_amount > 0, "Carbon amount must be positive."
+    assert amount > 0, "Amount must be greater than zero."
 
-    nft_counter = get(NFT_COUNTER_KEY)
-    if nft_counter is None:
-        nft_counter = 0
-    else:
-        nft_counter = int.from_bytes(nft_counter, "little")
+    current_id = get(NEXT_ID_KEY)
+    if current_id is None:
+        current_id = 1
 
-    nft_id = nft_counter + 1
-    timestamp = get_current_index()
+    timestamp = get_time()
+    for _ in range(amount):
+        nft_key = NFT_DATA_KEY + current_id.to_bytes()
+        put(nft_key, {"owner": owner, "timestamp": timestamp})
+        NFTMinted(owner, current_id, timestamp)
+        current_id += 1
 
-    # Store NFT details
-    nft_key = NFT_DATA_STORAGE_KEY + nft_id.to_bytes(4, "little")
-    put(nft_key, carbon_amount.to_bytes(4, "little"))
-    put(OWNER_STORAGE_KEY + nft_id.to_bytes(4, "little"), owner)
-    put(NFT_COUNTER_KEY, nft_id.to_bytes(4, "little"))
-
-    # Emit NFT minting event
-    NFTMinted(owner, nft_id, carbon_amount, timestamp)
+    put(NEXT_ID_KEY, current_id)
     return True
 
 @public
-def transfer_nft(nft_id: int, to: UInt160) -> bool:
+def burn_sudhi(nft_id: int) -> bool:
     """
-    Transfer ownership of an NFT to another address.
-    
-    Args:
-        nft_id (int): The ID of the NFT.
-        to (UInt160): The recipient's address.
-    
-    Returns:
-        bool: True if transfer is successful.
+    Burns a SUDHI NFT.
     """
-    current_owner = get(OWNER_STORAGE_KEY + nft_id.to_bytes(4, "little"))
-    assert current_owner is not None, "NFT does not exist."
-    assert check_witness(current_owner), "Unauthorized transfer attempt."
+    nft_key = NFT_DATA_KEY + nft_id.to_bytes()
+    nft_data = get(nft_key)
+    assert nft_data is not None, "NFT does not exist."
 
-    put(OWNER_STORAGE_KEY + nft_id.to_bytes(4, "little"), to)
-    NFTTransferred(current_owner, to, nft_id)
+    delete(nft_key)
+    NFTBurned(nft_id, get_time())
     return True
-
-@public
-def get_nft_owner(nft_id: int) -> UInt160:
-    """
-    Retrieve the owner of an NFT.
-    
-    Args:
-        nft_id (int): The ID of the NFT.
-    
-    Returns:
-        UInt160: The address of the owner.
-    """
-    owner = get(OWNER_STORAGE_KEY + nft_id.to_bytes(4, "little"))
-    if owner is None:
-        return UInt160()
-    return owner
