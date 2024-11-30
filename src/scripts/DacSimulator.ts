@@ -1,11 +1,10 @@
-import { Wallet, API } from '@cityofzion/neon-js';
-import { UInt160, Transaction } from '@cityofzion/neon-core'; // Adjust imports based on your neon-js version
-
+import { wallet, sc, tx, rpc, u } from '@cityofzion/neon-js';
+im
 // Helper function to get the address from a private key
 function getAddressFromPrivateKey(privateKey: string): string {
   try {
-    const wallet = Wallet.fromPrivateKey(privateKey);
-    return wallet.address;
+    const account = new wallet.Account(privateKey);
+    return account.address;
   } catch (error) {
     console.error("Error getting address from private key:", error);
     throw error; // Ensure that we throw the error for the calling function to handle it
@@ -31,20 +30,43 @@ async function sendDACTransaction(privateKey: string, dacReading: string) {
     const senderAddress = getAddressFromPrivateKey(privateKey);
     console.log(`Sender Address: ${senderAddress}`);
     
-    const wallet = Wallet.fromPrivateKey(privateKey);
-    const api = new API('http://your-node-url-here'); // Example API URL
+    const account = new wallet.Account(privateKey);
+    const nodeUrl = 'http://your-node-url-here'; // Example API URL
+    const apiProvider = new rpc.RPCClient(nodeUrl);
 
     // Prepare your contract transaction here, example for invoking a method in a smart contract
     const scriptHash = "YOUR_CONTRACT_SCRIPT_HASH"; // Contract script hash
     const method = "submitDACReading"; // Adjust method name
-    const params = [dacReading]; // Params to send to the contract
+    const params = [sc.ContractParam.string(dacReading)]; // Params to send to the contract
 
     // Create the transaction
-    const transaction = new Transaction({ version: 1, scripts: [] });
-    transaction.addContract(scriptHash, method, params);
+    const script = sc.createScript({
+      scriptHash,
+      operation: method,
+      args: params
+    });
+    const transaction = new tx.Transaction({
+      type: tx.TransactionType.ContractTransaction,
+      attributes: [
+        {
+          usage: tx.TxAttrUsage.Script,
+          data: u.HexString.fromHex(script)
+        }
+      ],
+      outputs: [
+        {
+          assetId: u.HexString.fromHex('0x' + 'your_asset_id_here'),
+          value: 0,
+          scriptHash: u.HexString.fromHex(scriptHash)
+        }
+      ]
+    });
+
+    // Sign the transaction
+    const signedTransaction = account.sign(transaction);
 
     // Send the transaction
-    const txHash = await wallet.sendInvokeTransaction(transaction);
+    const txHash = await apiProvider.sendTransaction(signedTransaction);
     console.log(`Transaction sent. TX Hash: ${txHash}`);
     return txHash;
   } catch (error) {
